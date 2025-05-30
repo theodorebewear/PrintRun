@@ -44,22 +44,28 @@
   </style>
 </head>
 <body>
-  
-  <h2>Pokemon TCG Print Estimate Calculator</h2>
 
-  <label for="generationSelect">Generation:</label>
-  <select id="generationSelect"></select>
+  <h2>Pokemon TCG: Print Run Estimate Calculator</h2>
 
-  <label for="setSelect">Title of Set:</label>
-  <select id="setSelect"></select>
+  <div id="container">
+    <div id="calculator">
+      <label for="generationSelect">Generation:</label>
+      <select id="generationSelect"></select>
 
-  <label for="raritySelect">Rarity Tier:</label>
-  <select id="raritySelect"></select>
+      <label for="setSelect">Set Name:</label>
+      <select id="setSelect"></select>
 
-  <div id="result">Result: </div>
-  <div id="breakdown"></div>
+      <label for="raritySelect">Rarity Tier:</label>
+      <select id="raritySelect"></select>
 
-  <script>
+      <div id="result">Result: </div>
+      <div id="breakdown"></div>
+    </div>
+
+    <div id="backgroundBox"></div>
+  </div>
+
+ <script>
     const data = {
       "GEN 1": {
        "Base Set 1st Edition": {
@@ -85,6 +91,16 @@
 	"Base Set Unlimited": {
         meta: {
           average_produced: 1200000000,
+          in_pack: 11
+        },
+        rarities: {
+          "Rare": { pull_rate: 1.5, number_in_set: 16 },
+          "Holo Rare": { pull_rate: 3, number_in_set: 16 }
+        }
+      },
+	"Jungle 1st Edition": {
+        meta: {
+          average_produced: 100000000,
           in_pack: 11
         },
         rarities: {
@@ -417,7 +433,7 @@
           }
         }
       },
- "GEN 4 - DPpt / HGSS ": {
+ "GEN 4 - DPPt / HGSS": {
 "Diamond Pearl Base Set": {
         meta: {
           average_produced: 100000000,
@@ -584,7 +600,7 @@
         }
       }
      },
-"GEN 5 - Black White ": {
+"GEN 5 - Black White": {
 "Black White Base": {
         meta: {
           average_produced: 250000000,
@@ -706,7 +722,7 @@
         }
       }
      },
-"GEN 6 - XY ": {
+"GEN 6 - XY": {
 "XY Base": {
         meta: {
           average_produced: 250000000,
@@ -750,7 +766,7 @@
 	"Secret Rare": { pull_rate: 72, number_in_set: 3 }
         }
       },
-"Reble Clash": {
+"Primal Clash": {
         meta: {
           average_produced: 250000000,
           in_pack: 10
@@ -863,7 +879,7 @@
         }
       }
     },
-"GEN 7 - Sun Moon ": {
+"GEN 7 - Sun Moon": {
 "Sun Moon Base": {
         meta: {
           average_produced: 450000000,
@@ -1074,7 +1090,7 @@
       }
 },
 
-"GEN 8 - Sword Shield ": {
+"GEN 8 - Sword Shield": {
 "Sword Shield Base": {
         meta: {
           average_produced: 500000000,
@@ -1304,7 +1320,7 @@
  	}
       }
     },
-"GEN 9 - Scarlet & Violet ": {
+"GEN 9 - Scarlet & Violet": {
 "Scarlet Violet Base": {
         meta: {
           average_produced: 1900000000,
@@ -1479,25 +1495,43 @@
    }
 };
 
+
+    const generationImages = {
+      "GEN 1": "Gen1.jpg",
+      "GEN 2 - NEO": "Gen2.jpg",
+      "GEN 3 - EX": "Gen3.jpg",
+      "GEN 4 - DPPt / HGSS": "Gen-4.jpg",
+      "GEN 5 - Black White": "Gen5.jpg",
+      "GEN 6 - XY": "Gen6.jpg",
+      "GEN 7 - Sun Moon": "Gen7.jpg",
+      "GEN 8 - Sword Shield": "Gen8.jpg",
+      "GEN 9 - Scarlet & Violet": "Gen9.jpg"
+
+    };
+
     const generationSelect = document.getElementById('generationSelect');
     const setSelect = document.getElementById('setSelect');
     const raritySelect = document.getElementById('raritySelect');
     const resultDiv = document.getElementById('result');
     const breakdownDiv = document.getElementById('breakdown');
+    const backgroundBox = document.getElementById('backgroundBox');
 
     function populateGenerations() {
-      for (let gen in data) {
+      for (let generation in data) {
         const option = document.createElement('option');
-        option.value = gen;
-        option.textContent = gen;
+        option.value = generation;
+        option.textContent = generation;
         generationSelect.appendChild(option);
       }
-      updateSets(); // Populate first set
+
+      updateSets();
+      updateBackground();
     }
 
     function updateSets() {
-      const selectedGen = generationSelect.value;
-      const sets = data[selectedGen];
+      const generation = generationSelect.value;
+      const sets = data[generation];
+
       setSelect.innerHTML = '';
 
       for (let setName in sets) {
@@ -1507,13 +1541,14 @@
         setSelect.appendChild(option);
       }
 
-      updateRarities(); // Update rarities for the new set
+      updateRarities();
+      updateBackground();
     }
 
     function updateRarities() {
-      const selectedGen = generationSelect.value;
-      const selectedSet = setSelect.value;
-      const rarities = data[selectedGen][selectedSet].rarities;
+      const generation = generationSelect.value;
+      const setName = setSelect.value;
+      const rarities = data[generation][setName].rarities;
 
       raritySelect.innerHTML = '';
 
@@ -1527,42 +1562,60 @@
       calculateResult();
     }
 
-    function calculateResult() {
-      const selectedGen = generationSelect.value;
-      const selectedSet = setSelect.value;
-      const selectedRarity = raritySelect.value;
+    function updateBackground() {
+      const generation = generationSelect.value;
+      const imageUrl = generationImages[generation];
 
-      if (selectedGen && selectedSet && selectedRarity) {
-        const setData = data[selectedGen][selectedSet];
-        const meta = setData.meta;
-        const rarity = setData.rarities[selectedRarity];
-
-        const { average_produced, in_pack } = meta;
-        const { pull_rate, number_in_set } = rarity;
-
-        let result = average_produced / in_pack / pull_rate / number_in_set;
-
-        const formattedResult = result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-        const formattedAvg = average_produced.toLocaleString();
-        const formattedInPack = in_pack.toLocaleString();
-        const formattedPullRate = pull_rate.toLocaleString(undefined, { minimumFractionDigits: 2 });
-        const formattedNumberInSet = number_in_set.toLocaleString();
-
-        resultDiv.innerHTML = `Result: <strong>${formattedResult}</strong>`;
-        breakdownDiv.innerHTML = `(${formattedAvg} / ${formattedInPack} / ${formattedPullRate} / ${formattedNumberInSet})`;
+      if (imageUrl) {
+        backgroundBox.style.backgroundImage = `url('${imageUrl}')`;
+      } else {
+        backgroundBox.style.backgroundImage = 'none';
       }
+    }
+
+    function calculateResult() {
+      const generation = generationSelect.value;
+      const setName = setSelect.value;
+      const rarityName = raritySelect.value;
+
+      if (!generation || !setName || !rarityName) return;
+
+      const setData = data[generation][setName];
+      const meta = setData.meta;
+      const rarity = setData.rarities[rarityName];
+
+      const { average_produced, in_pack } = meta;
+      const { pull_rate, number_in_set } = rarity;
+
+      let result = average_produced / in_pack / pull_rate / number_in_set;
+
+      const formattedResult = result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const formattedAvg = average_produced.toLocaleString();
+      const formattedInPack = in_pack.toLocaleString();
+      const formattedPullRate = pull_rate.toLocaleString(undefined, { minimumFractionDigits: 2 });
+      const formattedNumberInSet = number_in_set.toLocaleString();
+
+      resultDiv.innerHTML = `Result: <strong>${formattedResult}</strong>`;
+      breakdownDiv.innerHTML = `(${formattedAvg} / ${formattedInPack} / ${formattedPullRate} / ${formattedNumberInSet})`;
     }
 
     generationSelect.addEventListener('change', () => {
       updateSets();
+      updateBackground();
     });
 
-    setSelect.addEventListener('change', updateRarities);
+    setSelect.addEventListener('change', () => {
+      updateRarities();
+    });
+
     raritySelect.addEventListener('change', calculateResult);
 
-    populateGenerations(); // Init
+    populateGenerations();
   </script>
+
+<p>( Average Units Produced per Set / Cards in Pack / Pull Rate per Pack / Rarity Tier in Set ) </p>
+
+<p>// Please note: <I>This calculator does not take into account Language Percentage, Promos & Theme Decks, or differences between Japanese and Foreign Language set makeup / pull rate. Average Units Produced is major assumption. This should be used as a fun thought exercise and not a definitive answer to card print runs. Though, without any of the aforementioned variables we perhaps get a padded "ceiling" on the number of likely produced cards. </i> </p>
 
 </body>
 </html>
